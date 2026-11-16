@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPU kernels | Arnav Tevatia</title>
+<meta name="description" content="CUDA matrix multiply kernels for transformer inference.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="site">
+  <div class="bar">
+    <a class="brand" href="../index.html">Arnav Tevatia<span>.</span></a>
+    <nav class="tabs" aria-label="Main">
+      <ul>
+<li><a href="../index.html">Home</a></li>
+<li><a href="../projects/index.html" aria-current="page">Projects</a></li>
+<li><a href="../about.html">About</a></li>
+<li><a href="../contact.html">Resume & Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="main">
+
+<p class="crumb"><a href="index.html">Projects</a> / GPU kernels</p>
+<p class="eyebrow">CS 4787, Cornell · CUDA, C++, PyTorch</p>
+<h1>GPU kernels for transformer inference</h1>
+<p class="lede">Most of the work a language model does when it answers a question is one operation: multiplying large matrices. I wrote that operation from scratch on a GPU four times, each version smarter than the last, and measured every step.</p>
+
+<div class="stats">
+  <div class="stat-box"><div class="num">2.5 s → 0.05 s</div><div class="lbl">Time for one 4096 × 4096 multiply, first version vs. TensorCore version</div></div>
+  <div class="stat-box"><div class="num">~50–130×</div><div class="lbl">Speedup over my first version, depending on matrix size</div></div>
+  <div class="stat-box"><div class="num">4</div><div class="lbl">Kernel designs, each benchmarked for speed and accuracy</div></div>
+</div>
+
+<div class="plain">
+  <strong>What the numbers mean</strong>
+  A task that took my first version about two and a half seconds took my final version about one twentieth of a second. For a chatbot, faster matrix multiplies mean faster answers and fewer GPUs to pay for. For a robot, it means the model can react in time.
+</div>
+
+<figure>
+  <img src="../assets/cuda-benchmark.png" alt="Line chart on a log scale of runtime versus matrix size from 256 to 4096. The naive kernels (sgemm_p1, hgemm_p1) are slowest, reaching about 2.5 to 3.4 seconds at size 4096. Tiled kernels are several times faster. TensorCore kernels hgemm_p3 and hgemm_p4 are about 0.05 to 0.06 seconds at 4096. PyTorch's cuBLAS FP16 is fastest at about 0.003 seconds.">
+  <figcaption>Runtime vs. matrix size (log scale, lower is faster). Each step down is a design change: tiling, then TensorCores. PyTorch (cuBLAS) is still fastest at large sizes, and I explain why below.</figcaption>
+</figure>
+
+<h2>Four versions, one idea each</h2>
+<div class="table-wrap">
+<table>
+  <caption>Kernel designs</caption>
+  <thead><tr><th>Version</th><th>Idea</th><th>Plain language</th></tr></thead>
+  <tbody>
+    <tr><td>1. Naive</td><td>One thread per output value, reading straight from global memory</td><td>Every worker walks to the warehouse for every single item.</td></tr>
+    <tr><td>2. Tiled</td><td>Blocks of 256 threads share 16×16 tiles in fast on-chip memory</td><td>A team brings a box back to their desk once, then reuses it 16 times.</td></tr>
+    <tr><td>3. TensorCore</td><td>WMMA instructions run the multiply on dedicated matrix hardware</td><td>Hand the job to a machine built for exactly this task.</td></tr>
+    <tr><td>4. Mixed precision</td><td>Half-precision inputs, full-precision running sums</td><td>Same speed, but keep the running total exact so rounding errors don't pile up.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Accuracy, not just speed</h2>
+<p>Fast and wrong is useless, so I checked every kernel against a high-precision reference. Keeping the running sum in full precision (version 4) cut the error from about 1 in 70,000 to about 1 in 15 billion, at essentially the same speed. This is the same trade-off that makes mixed-precision training work in practice.</p>
+
+<h2>What I'd do next</h2>
+<p>NVIDIA's cuBLAS still wins at large sizes. The gap comes from techniques I left out on purpose: larger tiles with register blocking, staging TensorCore inputs in shared memory, double buffering to hide memory delays, avoiding shared-memory bank conflicts, and autotuning per GPU. Those are my next steps, roughly in order of expected payoff.</p>
+
+<details>
+  <summary>See the TensorCore kernel (CUDA)</summary>
+<pre><code>__global__ void hgemm_p3_kernel(const __half* A, const __half* B, __half* C,
+                                const size_t M, const size_t N, const size_t K) {
+  // each block is a single warp that computes one 16x16 tile of C
+  const int row = blockIdx.x * 16;
+  const int col = blockIdx.y * 16;
+
+  wmma::fragment&lt;wmma::matrix_a, 16, 16, 16, half, wmma::row_major&gt; a_frag;
+  wmma::fragment&lt;wmma::matrix_b, 16, 16, 16, half, wmma::col_major&gt; b_frag;
+  wmma::fragment&lt;wmma::accumulator, 16, 16, 16, half&gt; c_frag;
+  wmma::fill_fragment(c_frag, __float2half(0.0f));
+
+  for (int k0 = 0; k0 &lt; (int)K; k0 += 16) {
+    const half* tile_A = reinterpret_cast&lt;const half*&gt;(A + row * K + k0);
+    // read B (N x K, row-major) as B^T (K x N, col-major): no transpose needed
+    const half* tile_B = reinterpret_cast&lt;const half*&gt;(B + col * K + k0);
+    wmma::load_matrix_sync(a_frag, tile_A, K);
+    wmma::load_matrix_sync(b_frag, tile_B, K);
+    wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);  // runs on TensorCores
+  }
+  // ... store c_frag to C
+}</code></pre>
+</details>
+
+<p class="small muted">Full source and benchmark script: <a href="https://github.com/arnavtevatia/cuda-transformer-inference-optimization">github.com/arnavtevatia/cuda-transformer-inference-optimization</a></p>
+
+</main>
+<footer class="site">
+  <div class="bar">
+    <span>Arnav Tevatia, Cornell Engineering, Class of 2027</span>
+    <span><a href="https://www.linkedin.com/in/arnav-tevatia">LinkedIn</a> · <a href="https://github.com/arnavtevatia">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>

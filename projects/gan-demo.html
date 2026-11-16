@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAN loss demo | Arnav Tevatia</title>
+<meta name="description" content="Interactive explainer of the non-saturating GAN loss.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="site">
+  <div class="bar">
+    <a class="brand" href="../index.html">Arnav Tevatia<span>.</span></a>
+    <nav class="tabs" aria-label="Main">
+      <ul>
+<li><a href="../index.html">Home</a></li>
+<li><a href="../projects/index.html" aria-current="page">Projects</a></li>
+<li><a href="../about.html">About</a></li>
+<li><a href="../contact.html">Resume & Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="main">
+
+<p class="crumb"><a href="index.html">Projects</a> / GAN loss demo</p>
+<p class="eyebrow">Interactive explainer · HTML, CSS, JavaScript</p>
+<h1>Why GANs use a different loss</h1>
+<p class="lede">A GAN trains two networks against each other. The textbook loss gives the generator almost no signal early in training, exactly when it needs the most help. I built this demo so you can see and feel that problem, then see the fix.</p>
+
+<div class="plain">
+  <strong>In plain language</strong>
+  Picture a student who gets almost no feedback while they are worst at a skill, and lots of feedback only once they are already good. The fix in this demo flips that, so the student gets the strongest feedback early on.
+</div>
+
+<div class="iframe-wrap">
+  <iframe src="https://arnavtevatia.github.io/gan-loss-demo/" title="Interactive GAN loss curves demo" loading="lazy"></iframe>
+</div>
+<p class="small muted">Having trouble with the embedded view? <a href="https://arnavtevatia.github.io/gan-loss-demo/">Open the demo full screen</a>.</p>
+
+<h2>What's mine and what isn't</h2>
+<p>The non-saturating loss is not my idea. Goodfellow et al. proposed it in the original GAN paper (2014). What I made is this demo and its explanations: the design, the visuals, the simulation and the code.</p>
+
+<h2>How it's built</h2>
+<p>The demo walks through six steps: the two loss formulas side by side, live gradient meters that show the stall, proof that both losses end in the same place, a speed race where each bar moves at the speed of its gradient, a small training simulation, and a free exploration mode.</p>
+
+</main>
+<footer class="site">
+  <div class="bar">
+    <span>Arnav Tevatia, Cornell Engineering, Class of 2027</span>
+    <span><a href="https://www.linkedin.com/in/arnav-tevatia">LinkedIn</a> · <a href="https://github.com/arnavtevatia">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>

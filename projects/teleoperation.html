@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teleoperation force feedback | Arnav Tevatia</title>
+<meta name="description" content="Force feedback for robot teleoperation, robotics internship.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="site">
+  <div class="bar">
+    <a class="brand" href="../index.html">Arnav Tevatia<span>.</span></a>
+    <nav class="tabs" aria-label="Main">
+      <ul>
+<li><a href="../index.html">Home</a></li>
+<li><a href="../projects/index.html" aria-current="page">Projects</a></li>
+<li><a href="../about.html">About</a></li>
+<li><a href="../contact.html">Resume & Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="main">
+
+<p class="crumb"><a href="index.html">Projects</a> / Teleoperation</p>
+<p class="eyebrow">Internship, robotics startup, summer 2026</p>
+<h1>Force feedback for robot teleoperation</h1>
+<p class="lede">When a person controls a robot arm remotely, they can't feel what the gripper is touching. My summer work was about giving that sense of touch back to the operator, and getting control code to run reliably on real hardware.</p>
+
+<div class="plain">
+  <strong>In plain language</strong>
+  Imagine steering a robot hand with a controller. Without force feedback, you can crush an object or drop it because you have no idea how hard you are squeezing. Force feedback pushes back on your hand so you can feel the grip.
+</div>
+
+<h2>The problem</h2>
+<p>Force sensors add cost, weight and wiring to a robot. I worked on estimating contact force from signals the robot already has, so the operator could get feedback without adding a dedicated sensor.</p>
+
+<h2>What I worked on</h2>
+<ul>
+  <li>A force estimation system for teleoperation that needed no extra sensor.</li>
+  <li>Control code deployed into the robot's real-time control system.</li>
+  <li>Benchmarking vision-language-action (VLA) models on the team's tasks.</li>
+</ul>
+
+<h2>Why it matters to me</h2>
+<p>This was the first time my code had to work on a physical machine instead of a benchmark. Bugs showed up as a robot doing the wrong thing, which made testing and measurement feel very different from coursework.</p>
+
+<p class="muted small">The company is early stage, so I'm only sharing what I'm allowed to. I'll add a demo video and results here once they're cleared for public use.</p>
+
+</main>
+<footer class="site">
+  <div class="bar">
+    <span>Arnav Tevatia, Cornell Engineering, Class of 2027</span>
+    <span><a href="https://www.linkedin.com/in/arnav-tevatia">LinkedIn</a> · <a href="https://github.com/arnavtevatia">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>

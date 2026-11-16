@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoRA and DoRA | Arnav Tevatia</title>
+<meta name="description" content="LoRA and DoRA fine-tuning on GPT-2 from scratch.">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="site">
+  <div class="bar">
+    <a class="brand" href="../index.html">Arnav Tevatia<span>.</span></a>
+    <nav class="tabs" aria-label="Main">
+      <ul>
+<li><a href="../index.html">Home</a></li>
+<li><a href="../projects/index.html" aria-current="page">Projects</a></li>
+<li><a href="../about.html">About</a></li>
+<li><a href="../contact.html">Resume & Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="main">
+
+<p class="crumb"><a href="index.html">Projects</a> / LoRA and DoRA</p>
+<p class="eyebrow">CS 4782 Deep Learning, Cornell · PyTorch</p>
+<h1>Fine-tuning GPT-2 with LoRA and DoRA, from scratch</h1>
+<p class="lede">Adapting a language model to new text usually means retraining all of its 124 million settings. LoRA freezes the model and trains a tiny add-on instead. I implemented LoRA and its newer extension DoRA myself, with no fine-tuning library, and compared six setups.</p>
+
+<div class="stats">
+  <div class="stat-box"><div class="num">843×</div><div class="lbl">Fewer trainable parameters with LoRA r=4 (147K vs. 124M)</div></div>
+  <div class="stat-box"><div class="num">32.13 → 25.65</div><div class="lbl">Perplexity, full fine-tuning vs. LoRA r=4 (lower is better)</div></div>
+  <div class="stat-box"><div class="num">25.22</div><div class="lbl">Best perplexity, from my DoRA extension at r=8</div></div>
+</div>
+
+<div class="plain">
+  <strong>What the numbers mean</strong>
+  Perplexity measures how surprised a model is by new text. Lower means it predicts better. Training only a small add-on, 843 times smaller than the full model, gave a better result than retraining everything. That means cheaper training and a much smaller file to store for each new task.
+</div>
+
+<figure>
+  <img src="../assets/lora-perplexity.png" alt="Bar chart of validation perplexity, lower is better. Frozen GPT-2 36.08, full fine-tune 32.13, LoRA r=4 25.65, LoRA r=8 25.26, DoRA r=4 25.50, DoRA r=8 25.22.">
+  <figcaption>Validation perplexity on WikiText-2 for all six configurations.</figcaption>
+</figure>
+
+<div class="table-wrap">
+<table>
+  <caption>Results</caption>
+  <thead><tr><th>Configuration</th><th>Trainable parameters</th><th>Perplexity</th><th>Peak GPU memory</th></tr></thead>
+  <tbody>
+    <tr><td>Frozen GPT-2</td><td>0</td><td>36.08</td><td>N/A</td></tr>
+    <tr><td>Full fine-tune</td><td>124,440K</td><td>32.13</td><td>5,753 MB</td></tr>
+    <tr class="hl"><td>LoRA r=4</td><td>147K</td><td>25.65</td><td>4,118 MB</td></tr>
+    <tr><td>LoRA r=8</td><td>295K</td><td>25.26</td><td>4,120 MB</td></tr>
+    <tr><td>DoRA r=4</td><td>166K</td><td>25.50</td><td>4,227 MB</td></tr>
+    <tr class="hl"><td>DoRA r=8</td><td>313K</td><td>25.22</td><td>4,228 MB</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>The surprise</h2>
+<p>I expected LoRA to roughly match full fine-tuning, not beat it. The training curves explain why: full fine-tuning starts overfitting WikiText-2's small training set after the first epoch, while LoRA's small add-on can't memorize as much, so it generalizes better.</p>
+<figure>
+  <img src="../assets/lora-curves.png" alt="Line chart of validation perplexity over three epochs. Full fine-tuning gets worse, rising from about 27.8 to 32.1, while all four LoRA and DoRA setups keep improving, ending between 25.2 and 25.7.">
+  <figcaption>Validation perplexity by epoch. Full fine-tuning gets worse after epoch 1 while the adapters keep improving.</figcaption>
+</figure>
+
+<h2>How I made sure it was right</h2>
+<ul>
+  <li><strong>Parameter audit:</strong> confirmed only the adapter weights could change during training.</li>
+  <li><strong>Equivalence check:</strong> confirmed the adapted model's output matched the original GPT-2 exactly before training started.</li>
+</ul>
+
+<h2>What's next</h2>
+<p>DoRA beat LoRA at the same size every time, but by less than the original paper reports on much larger models. Whether that gap grows with model size is the question I'd test next.</p>
+
+<h2>My poster</h2>
+<object class="pdf" data="../assets/lora-dora-poster.pdf" type="application/pdf" aria-label="LoRA and DoRA project poster (PDF)">
+  <p>Your browser can't show the poster here. <a href="../assets/lora-dora-poster.pdf">Open the poster PDF</a>.</p>
+</object>
+
+<p class="small muted">Full source, report and poster: <a href="https://github.com/arnavtevatia/lora-dora-gpt2">github.com/arnavtevatia/lora-dora-gpt2</a></p>
+
+</main>
+<footer class="site">
+  <div class="bar">
+    <span>Arnav Tevatia, Cornell Engineering, Class of 2027</span>
+    <span><a href="https://www.linkedin.com/in/arnav-tevatia">LinkedIn</a> · <a href="https://github.com/arnavtevatia">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>
